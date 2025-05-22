@@ -13,12 +13,15 @@
     "description": "",
     "dependencies": {
         "@nestjs/axios": "^4.0.0",
+        "@nestjs/cache-manager": "^3.0.1",
         "@nestjs/class-validator": "^0.13.4",
         "@nestjs/common": "^11.0.3",
         "@nestjs/config": "^4.0.2",
         "@nestjs/core": "^11.0.3",
         "@nestjs/platform-express": "^11.0.3",
+        "@nestjs/schedule": "^6.0.0",
         "axios": "^1.9.0",
+        "cache-manager": "^6.4.3",
         "nestjs-pino": "^4.4.0",
         "pino-http": "^10.4.0",
         "reflect-metadata": "^0.2.2"

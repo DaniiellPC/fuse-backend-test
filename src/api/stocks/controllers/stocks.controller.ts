@@ -1,16 +1,29 @@
-import { Controller, Get, Query } from "@nestjs/common";
-import { ListStocksDTO } from "./dtos/ListStocksDTO";
+import { Body, Controller, Get, Post, Query } from "@nestjs/common";
+import { ListStocksRequestDTO } from "./dtos/ListStocksRequestDTO";
 import { StocksService } from "../services/stocks.service";
+import { BuyStockRequestDTO } from "./dtos/BuyStockRequestDTO";
+import { ListStocksResponseDTO } from "./dtos/ListStocksResponseDTO";
 
-@Controller()
+@Controller("/stocks")
 export class StocksController {
   constructor(private readonly stocksService: StocksService) {}
 
-  @Get("/stocks")
-  async ListStocks(@Query() query: ListStocksDTO): Promise<any> {
-    const nextToken = query.nextToken;
-    const stocks = await this.stocksService.execute(nextToken);
+  @Get()
+  async ListStocks(
+    @Query() query: ListStocksRequestDTO
+  ): Promise<ListStocksResponseDTO> {
+    let page = Number(query.page) ?? 1;
+    let limit = Number(query.limit ?? 10);
 
-    return stocks;
+    const stocks = await this.stocksService.listStocks(page, limit);
+
+    return ListStocksResponseDTO.fromDomain(stocks);
+  }
+
+  @Post("/buy")
+  async BuyStock(@Body() body: BuyStockRequestDTO): Promise<any> {
+    const response = await this.stocksService.buyStock(body);
+
+    return response;
   }
 }

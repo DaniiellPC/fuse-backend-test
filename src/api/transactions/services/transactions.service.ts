@@ -41,7 +41,7 @@ export class TransactionsService {
     private readonly portfolioRepository: IPortfolioRepository
   ) {}
 
-  async buyStock(body: BuyStockRequestDTO) {
+  async buyStock(body: BuyStockRequestDTO): Promise<Transaction> {
     const { symbol, price, quantity, userId } = body;
     const totalCost = quantity * price;
     const transactionRecord = Transaction.create({
@@ -76,6 +76,24 @@ export class TransactionsService {
         transactionRecord.setMessage("Insufficient Funds");
         await this.transactionRepository.createAndSave(transactionRecord);
         throw new HttpException("Insufficient Funds", HttpStatus.BAD_REQUEST);
+      }
+
+      const isPriceValid = await this.fuseService.compareStockPrice(
+        symbol,
+        price
+      );
+      if (!isPriceValid) {
+        this.logger.warn(
+          `Purchase failed for user ${userId}: invalid stock price (${price}) for ${symbol}.`
+        );
+        transactionRecord.updateStatus(TransactionStatus.FAILED);
+        transactionRecord.setMessage(
+          "The purchase price is not correct or valid."
+        );
+        throw new HttpException(
+          "The purchase price is not correct or valid.",
+          HttpStatus.BAD_REQUEST
+        );
       }
 
       await this.fuseService.processExternalPurchase(
@@ -171,17 +189,7 @@ export class TransactionsService {
       );
     }
 
-    const isPriceValid = await this.fuseService.compareStockPrice(
-      symbol,
-      price
-    );
-    if (!isPriceValid) {
-      throw new HttpException(
-        "The price was not correct",
-        HttpStatus.BAD_REQUEST
-      );
-    }
-    return this.fuseService.buyFuseStock(symbol, price, quantity);
+    return transactionRecord;
   }
 
   private async upsertPortfolio(

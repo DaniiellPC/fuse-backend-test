@@ -6,12 +6,12 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from "typeorm";
-import { Transaction } from "./transaction.entity"; // Importa la entidad de transacción
-import { Portfolio } from "./portfolio.entity"; // Importa la entidad de portafolio
+import { Transaction } from "./transaction.entity";
+import { Portfolio } from "./portfolio.entity";
 
-@Entity("users") // Nombre de la tabla en la BD
+@Entity("users")
 export class User {
-  @PrimaryGeneratedColumn("uuid") // Genera UUIDs automáticamente
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column({ type: "varchar", length: 50, unique: true })

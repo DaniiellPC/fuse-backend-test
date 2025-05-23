@@ -20,7 +20,15 @@ export default () => ({
     maxApiRetries: parseInt(process.env.FUSE_MAX_API_RETRIES || "3", 10),
   },
   database: {
-    host: process.env.DATABASE_HOST,
-    port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
+    type: "postgres",
+    host: process.env.DB_HOST || "localhost",
+    port: parseInt(process.env.DB_PORT || "5432", 10),
+    username: process.env.DB_USER || "nest_user",
+    password: process.env.DB_PASSWORD || "nest_password",
+    database: process.env.DB_NAME || "nest_stocks_db",
+    synchronize: process.env.DB_SYNCHRONIZE === "true",
+    logging: process.env.DB_LOGGING === "true",
+    entities: ["dist/**/*.entity{.ts,.js}"],
+    autoLoadEntities: true,
   },
 });

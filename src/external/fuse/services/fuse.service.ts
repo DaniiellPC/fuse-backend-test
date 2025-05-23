@@ -25,11 +25,6 @@ import {
   Transaction,
   TransactionStatus,
 } from "../../../database/entities/transaction.entity";
-import {
-  IPortfolioRepository,
-  PORTFOLIO_REPOSITORY_TOKEN,
-} from "../../../database/repositories/interfaces/portfolio-repository.interface";
-import { DataSource, EntityManager } from "typeorm";
 
 @Injectable()
 export class FuseService implements OnModuleInit {
@@ -46,10 +41,7 @@ export class FuseService implements OnModuleInit {
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
-    private readonly dataSource: DataSource,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    @Inject(PORTFOLIO_REPOSITORY_TOKEN)
-    private readonly portfolioRepository: IPortfolioRepository
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {
     this.baseUrl = this.configService.get<string>("fuse.baseUrl");
     this.apiKey = this.configService.get<string>("fuse.apiKey");

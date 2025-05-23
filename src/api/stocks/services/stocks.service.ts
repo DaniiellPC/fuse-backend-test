@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { FuseService } from "../../../external/fuse/services/fuse.service";
-import { BuyStockRequestDTO } from "../controllers/dtos/BuyStockRequestDTO";
 
 @Injectable()
 export class StocksService {
@@ -10,10 +9,5 @@ export class StocksService {
     page = Math.max(1, page);
     limit = Math.max(1, limit);
     return this.fuseService.getAllStocks(page, limit);
-  }
-
-  async buyStock(body: BuyStockRequestDTO) {
-    const { symbol, price, quantity } = body;
-    return this.fuseService.buyFuseStock(symbol, price, quantity);
   }
 }

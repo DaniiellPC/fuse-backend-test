@@ -13,7 +13,7 @@ export default new DataSource({
   synchronize: false,
   logging: false,
   entities: ["dist/**/*.entity{.ts,.js}"],
-  migrations: ["dist/database/migrations/*.js"],
+  migrations: ["dist/src/database/migrations/*.js"],
   migrationsTableName: "typeorm_migrations",
   ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false, // RDS
 });

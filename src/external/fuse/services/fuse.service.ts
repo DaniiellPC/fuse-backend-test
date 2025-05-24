@@ -236,7 +236,7 @@ export class FuseService implements OnModuleInit {
     clientPrice: number
   ): Promise<boolean> {
     this.logger.log(
-      `Iniciando comparación para stock: ${symbol} con precio del cliente: ${clientPrice}`
+      `Starting comparison for stock: ${symbol} with client price: ${clientPrice}`
     );
 
     // Tries to get the stock from the cache
@@ -244,7 +244,7 @@ export class FuseService implements OnModuleInit {
 
     if (!cachedStock) {
       this.logger.warn(
-        `Stock ${symbol} no encontrado en caché. No se puede realizar la validación de precio.`
+        `Stock ${symbol} not found in cache. Cannot perform price validation.`
       );
       return false;
     }
@@ -259,14 +259,14 @@ export class FuseService implements OnModuleInit {
 
     if (isWithinRange) {
       this.logger.log(
-        `El precio cacheado (${cachedPrice}) para '${symbol}' está dentro del 2% del precio del cliente (${clientPrice}).`
+        `The cached price (${cachedPrice}) for '${symbol}' is within 2% of the client price (${clientPrice}).`
       );
       return true;
     } else {
       const difference = Math.abs(cachedPrice - clientPrice);
       const priceDifferencePercentage = (difference / clientPrice) * 100;
       this.logger.log(
-        `El precio cacheado (${cachedPrice}) para '${symbol}' está FUERA del 2% del precio del cliente (${clientPrice}). Diferencia: ${priceDifferencePercentage.toFixed(
+        `The cached price (${cachedPrice}) for '${symbol}' is OUTSIDE the 2% range of the client price (${clientPrice}). Difference: ${priceDifferencePercentage.toFixed(
           2
         )}%.`
       );
@@ -421,11 +421,11 @@ export class FuseService implements OnModuleInit {
               retry(this.maxApiRetries),
               catchError((error) => {
                 this.logger.error(
-                  `Error al obtener stocks del Vendor (Página ${pageCount}) en _fetchAndCacheAllStocksFromVendor: ${error.message}`,
+                  `Error fetching stocks from Vendor (Page ${pageCount}) in _fetchAndCacheAllStocksFromVendor: ${error.message}`,
                   error.stack
                 );
                 throw new HttpException(
-                  "Fallo al conectar con el servicio de stocks del proveedor.",
+                  "Failed to connect to the vendor's stock service.",
                   HttpStatus.SERVICE_UNAVAILABLE
                 );
               })
@@ -435,7 +435,7 @@ export class FuseService implements OnModuleInit {
         const data = response.data.data;
         if (!data || !data.items) {
           this.logger.warn(
-            `El Vendor no retornó datos o items en la página ${pageCount} en _fetchAndCacheAllStocksFromVendor.`
+            `Vendor did not return data or items on page ${pageCount} in _fetchAndCacheAllStocksFromVendor.`
           );
           break;
         }
@@ -449,24 +449,24 @@ export class FuseService implements OnModuleInit {
             this.cacheTtlMilis
           );
           allSymbols.push(stock.symbol);
-          this.logger.debug(`Stock cacheado: ${stock.symbol}`);
+          this.logger.debug(`Cached stock: ${stock.symbol}`);
         }
 
         this.logger.log(
-          `Página ${pageCount} obtenida: ${data.items.length} items.`
+          `Page ${pageCount} gotten: ${data.items.length} items.`
         );
 
         if (!currentNextToken) {
           this.logger.log(
-            `nextToken no encontrado en la respuesta de la página ${pageCount}. Asumiendo última página. Deteniendo paginación.`
+            `nextToken not found in the response of page ${pageCount}. Assuming last page. Stopping pagination.`
           );
           break;
         }
-        // También podemos salir si no hay items, incluso si por alguna razón nextToken no es nulo
-        // (Aunque la ausencia de nextToken suele ser el indicador principal)
+        // We can also exit if there are no items, even if for some reason nextToken is not null
+        // (Although the absence of nextToken is usually the main indicator)
         if (data.items.length === 0) {
           this.logger.log(
-            `Página ${pageCount} sin items. Deteniendo paginación.`
+            `Page ${pageCount} has no items. Stopping pagination.`
           );
           break;
         }

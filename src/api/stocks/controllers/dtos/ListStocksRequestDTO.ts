@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from "@nestjs/class-validator";
+import { IsString, IsOptional } from "class-validator";
 
 export class ListStocksRequestDTO {
   @IsString()

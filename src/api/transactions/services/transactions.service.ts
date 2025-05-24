@@ -104,7 +104,10 @@ export class TransactionsService {
       );
 
       await this.dataSource.transaction(async (manager: EntityManager) => {
-        const user = await this.userRepository.findOneByIdWithLock(userId);
+        const user = await this.userRepository.findOneByIdWithLock(
+          userId,
+          manager
+        );
         if (!user) {
           //this shouldn't happen, but just in case
           transactionRecord.updateStatus(TransactionStatus.FAILED);
@@ -217,7 +220,7 @@ export class TransactionsService {
         (newTotalValue / newQuantity).toFixed(4)
       );
       this.logger.log(
-        `Portafolio actualizado para usuario ${userId}, stock ${stockSymbol}. Nueva cantidad: ${portfolioItem.quantity}, Precio promedio: ${portfolioItem.average_buy_price}`
+        `Portfolio updated for user ${userId}, stock ${stockSymbol}. New quantity: ${portfolioItem.quantity}, Average price: ${portfolioItem.average_buy_price}`
       );
     } else {
       portfolioItem = this.portfolioRepository.create(
@@ -230,7 +233,7 @@ export class TransactionsService {
         manager
       );
       this.logger.log(
-        `Nueva entrada de portafolio creada para usuario ${userId}, stock ${stockSymbol}. Cantidad: ${portfolioItem.quantity}`
+        `New portfolio entry created for user ${userId}, stock ${stockSymbol}. Quantity: ${portfolioItem.quantity}`
       );
     }
     await this.portfolioRepository.save(portfolioItem, manager);

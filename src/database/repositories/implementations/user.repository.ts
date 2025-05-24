@@ -19,7 +19,7 @@ export class UserRepository implements IUserRepository {
     const repository = manager ? manager.getRepository(User) : this.userRepo;
     return repository.findOne({
       where: { id: userId },
-      lock: { mode: "optimistic", version: new Date() }, // Bloqueo para actualizaciones
+      lock: { mode: "pessimistic_write" }, // Blocked for updates
     });
   }
 

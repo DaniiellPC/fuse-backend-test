@@ -42,10 +42,10 @@ export class Transaction {
   @Column("int")
   quantity: number;
 
-  @Column({ type: "numeric", precision: 18, scale: 4 })
+  @Column({ type: "numeric", precision: 18, scale: 2 })
   price_at_transaction: number;
 
-  @Column({ type: "numeric", precision: 18, scale: 4 })
+  @Column({ type: "numeric", precision: 18, scale: 2 })
   total_amount: number;
 
   @Column({

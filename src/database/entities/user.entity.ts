@@ -23,7 +23,7 @@ export class User {
   @Column({ type: "varchar", length: 255 })
   password_hash: string;
 
-  @Column({ type: "numeric", precision: 18, scale: 4, default: 0.0 })
+  @Column({ type: "numeric", precision: 18, scale: 2, default: 0.0 })
   balance: number;
 
   @CreateDateColumn()

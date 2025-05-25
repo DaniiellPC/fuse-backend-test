@@ -6,11 +6,13 @@ import { CacheModule } from "@nestjs/cache-manager";
 import { ScheduleModule } from "@nestjs/schedule";
 import { TransactionsModule } from "./api/transactions/transactions.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { PortfoliosModule } from "./api/portfolios/portfolios.module";
 
 @Module({
   imports: [
     StocksModule,
     TransactionsModule,
+    PortfoliosModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ".env",

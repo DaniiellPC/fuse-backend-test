@@ -300,7 +300,7 @@ export class FuseService implements OnModuleInit {
         this.buyFuseStock(stockSymbol, clientPrice, quantity)
       );
 
-      // Verificar la respuesta de éxito de la API externa
+      // Verify the response
       if (
         apiResponse.status !== 200 ||
         apiResponse.message !== "Order placed successfully"
@@ -319,7 +319,7 @@ export class FuseService implements OnModuleInit {
 
         throw new HttpException(
           transactionRecord.getMessage(),
-          HttpStatus.INTERNAL_SERVER_ERROR // O HttpStatus.BAD_GATEWAY
+          HttpStatus.INTERNAL_SERVER_ERROR
         );
       }
       this.logger.log(

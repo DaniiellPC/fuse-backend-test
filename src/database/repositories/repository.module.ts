@@ -14,16 +14,16 @@ import { PORTFOLIO_REPOSITORY_TOKEN } from "./interfaces/portfolio-repository.in
   imports: [TypeOrmModule.forFeature([User, Transaction, Portfolio])],
   providers: [
     {
-      provide: USER_REPOSITORY_TOKEN, // Cuando se pida la interfaz IUserRepository
-      useClass: UserRepository, // Usar la implementación UserRepository
+      provide: USER_REPOSITORY_TOKEN,
+      useClass: UserRepository,
     },
     {
-      provide: TRANSACTION_REPOSITORY_TOKEN, // Cuando se pida la interfaz ITransactionRepository
-      useClass: TransactionRepository, // Usar la implementación TransactionRepository
+      provide: TRANSACTION_REPOSITORY_TOKEN,
+      useClass: TransactionRepository,
     },
     {
-      provide: PORTFOLIO_REPOSITORY_TOKEN, // Cuando se pida la interfaz IPortfolioRepository
-      useClass: PortfolioRepository, // Usar la implementación PortfolioRepository
+      provide: PORTFOLIO_REPOSITORY_TOKEN,
+      useClass: PortfolioRepository,
     },
   ],
   exports: [

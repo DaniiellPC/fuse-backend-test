@@ -300,7 +300,7 @@ export class FuseService implements OnModuleInit {
         this.buyFuseStock(stockSymbol, clientPrice, quantity)
       );
 
-      // Verify the response
+      // Verifying the response
       if (
         apiResponse.status !== 200 ||
         apiResponse.message !== "Order placed successfully"

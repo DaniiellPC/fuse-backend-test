@@ -7,12 +7,14 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { TransactionsModule } from "./api/transactions/transactions.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { PortfoliosModule } from "./api/portfolios/portfolios.module";
+import { ReportsModule } from "./reports/reports.module";
 
 @Module({
   imports: [
     StocksModule,
     TransactionsModule,
     PortfoliosModule,
+    ReportsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ".env",
@@ -40,11 +42,11 @@ import { PortfoliosModule } from "./api/portfolios/portfolios.module";
           database: dbConfig.database,
           synchronize: dbConfig.synchronize,
           logging: dbConfig.logging,
-          entities: [__dirname + "/**/*.entity{.ts,.js}"], // Ruta de tus entidades (ej. Transaction.entity.ts)
-          // Aquí puedes añadir ssl: { rejectUnauthorized: false } para RDS si lo necesitas
+          entities: [__dirname + "/**/*.entity{.ts,.js}"],
+          // Here add ssl: { rejectUnauthorized: false } for RDS
         };
       },
-      inject: [ConfigService], // Inyecta ConfigService
+      inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
   ],

@@ -14,7 +14,7 @@ export class AddDummyUsers1748066138974 implements MigrationInterface {
         balance: 1000.0,
       },
       {
-        id: "b1fcc100-0d1c-5af9-cc7e-7cc0ce491b22",
+        id: "bcff8bd0-3e6b-4edb-a3e9-94607e895b37",
         username: "dummyuser2",
         email: "user2@example.com",
         password: "password123",
@@ -49,28 +49,28 @@ export class AddDummyUsers1748066138974 implements MigrationInterface {
         balance: 2000.0,
       },
       {
-        id: "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+        id: "f58a75af-5e21-4ef7-99e2-8cab60d24edf",
         username: "dummyuser7",
         email: "user7@example.com",
         password: "password123",
         balance: 750.0,
       },
       {
-        id: "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e",
+        id: "397ce57f-675d-4b99-8260-465245053aa4",
         username: "dummyuser8",
         email: "user8@example.com",
         password: "password123",
         balance: 4000.5,
       },
       {
-        id: "c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f",
+        id: "b19b88b0-d88f-4acc-9b7f-6b5595606796",
         username: "dummyuser9",
         email: "user9@example.com",
         password: "password123",
         balance: 1200.0,
       },
       {
-        id: "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a",
+        id: "d69c0416-f6ed-4ffc-b2dd-d9d1c990ab48",
         username: "dummyuser10",
         email: "user10@example.com",
         password: "password123",
@@ -110,15 +110,15 @@ export class AddDummyUsers1748066138974 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     const userIds = [
       "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-      "b1fcc100-0d1c-5af9-cc7e-7cc0ce491b22",
+      "bcff8bd0-3e6b-4edb-a3e9-94607e895b37",
       "20354d7a-e4fe-47af-8ff6-187bca92f3f9",
       "caa8b54a-eb5e-4134-8ae2-a3946a428ec7",
       "bd2cbad1-6ccf-48e3-bb92-bc9961bc011e",
       "b5e2cf01-8bb6-4fcd-ad88-0efb611195da",
-      "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
-      "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e",
-      "c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f",
-      "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a",
+      "f58a75af-5e21-4ef7-99e2-8cab60d24edf",
+      "397ce57f-675d-4b99-8260-465245053aa4",
+      "b19b88b0-d88f-4acc-9b7f-6b5595606796",
+      "d69c0416-f6ed-4ffc-b2dd-d9d1c990ab48",
     ];
 
     await queryRunner.query(

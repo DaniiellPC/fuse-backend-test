@@ -21,6 +21,21 @@ export enum TransactionStatus {
   CANCELLED = "CANCELLED",
 }
 
+export type TransactionProperties = {
+  id: string;
+  user_id: string;
+  stock_symbol: string;
+  transaction_type: TransactionType;
+  quantity: number;
+  price_at_transaction: number;
+  total_amount: number;
+  status: TransactionStatus;
+  transaction_date: Date;
+  completion_date?: Date;
+  message?: string;
+  created_at: Date;
+  updated_at?: Date;
+};
 @Entity("transactions")
 export class Transaction {
   @PrimaryGeneratedColumn("uuid")
@@ -167,5 +182,23 @@ export class Transaction {
 
   getUserId(): string {
     return this.user_id;
+  }
+
+  getTransactionProperties(): TransactionProperties {
+    return {
+      id: this.id,
+      user_id: this.user_id,
+      stock_symbol: this.stock_symbol,
+      transaction_type: this.transaction_type,
+      quantity: this.quantity,
+      price_at_transaction: this.price_at_transaction,
+      total_amount: this.total_amount,
+      status: this.status,
+      transaction_date: this.transaction_date,
+      completion_date: this.completion_date,
+      message: this.message,
+      created_at: this.created_at,
+      updated_at: this.updated_at,
+    };
   }
 }

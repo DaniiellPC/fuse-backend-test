@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Param,
-} from "@nestjs/common";
+import { Controller, Get, Param } from "@nestjs/common";
 import { PortfoliosService } from "../services/portfolios.service";
 import { FindPortfolioByUserIdResponseDTO } from "./dtos/FindPortfolioByUserIdResponseDTO";
 

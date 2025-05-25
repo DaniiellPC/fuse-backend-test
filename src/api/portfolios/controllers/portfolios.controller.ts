@@ -6,7 +6,7 @@ import {
   Param,
 } from "@nestjs/common";
 import { PortfoliosService } from "../services/portfolios.service";
-import { GetPortfolioByUserIdResponseDTO } from "./dtos/GetPortfolioByUserIdResponseDTO";
+import { FindPortfolioByUserIdResponseDTO } from "./dtos/FindPortfolioByUserIdResponseDTO";
 
 @Controller("/portfolios")
 export class PortfoliosController {
@@ -15,12 +15,12 @@ export class PortfoliosController {
   @Get("/:userId/portfolio")
   async FindPortfolioByUserId(
     @Param("userId") userId: string
-  ): Promise<GetPortfolioByUserIdResponseDTO> {
+  ): Promise<FindPortfolioByUserIdResponseDTO> {
     if (!userId) {
       throw new HttpException("User ID is required", HttpStatus.BAD_REQUEST);
     }
     const portfolio = await this.portfoliosService.getPortfolioByUserId(userId);
 
-    return GetPortfolioByUserIdResponseDTO.fromDomain(portfolio);
+    return FindPortfolioByUserIdResponseDTO.fromDomain(portfolio);
   }
 }

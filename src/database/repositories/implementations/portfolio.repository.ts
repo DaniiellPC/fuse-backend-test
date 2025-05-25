@@ -11,6 +11,26 @@ export class PortfolioRepository implements IPortfolioRepository {
     this.portfolioRepo = this.dataSource.getRepository(Portfolio);
   }
 
+  async findOneByUserId(
+    userId: string,
+    manager?: EntityManager
+  ): Promise<Portfolio | null> {
+    const repository = manager
+      ? manager.getRepository(Portfolio)
+      : this.portfolioRepo;
+    return repository.findOne({ where: { user_id: userId } });
+  }
+
+  async findAllByUserId(
+    userId: string,
+    manager?: EntityManager
+  ): Promise<Portfolio[]> {
+    const repository = manager
+      ? manager.getRepository(Portfolio)
+      : this.portfolioRepo;
+    return repository.find({ where: { user_id: userId } });
+  }
+
   async findOneByUserIdAndSymbol(
     userId: string,
     stockSymbol: string,

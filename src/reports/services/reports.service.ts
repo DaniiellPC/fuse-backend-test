@@ -1,6 +1,6 @@
 // src/reports/reports.service.ts
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { Cron } from "@nestjs/schedule";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import * as nodemailer from "nodemailer";
 import { generateCsv } from "../../utils/json2csv";
 import * as luxon from "luxon";
@@ -40,7 +40,7 @@ export class ReportsService {
     );
   }
 
-  @Cron("*/10 * * * * *")
+  @Cron(CronExpression.EVERY_MINUTE)
   async handleHourlyReport() {
     this.logger.log(
       "Attempting to generate and send hourly transactions report..."
@@ -83,16 +83,16 @@ export class ReportsService {
       const mailOptions = {
         from: '"Transactions Reports" <reports@your-app.com>',
         to: "email_test@example.com",
-        subject: `Daily Transactions Report - ${now.toFormat("YYYY-MM-DD")}`,
+        subject: `Daily Transactions Report - ${now.toFormat("yyyy-mm-dd")}`,
         html: `<p>Hey,</p>
                 <p>Attached you will find the transactions report for the day ${now.toFormat(
-                  "YYYY-MM-DD"
+                  "yyyy-mm-dd"
                 )}.</p>
                <p>Greetings,</p>
                <p>NestJS Fuse Test</p>`,
         attachments: [
           {
-            filename: `transactions_${now.toFormat("YYYY-MM-DD")}.csv`,
+            filename: `transactions_${now.toFormat("yyyy-mm-dd")}.csv`,
             content: csv,
             contentType: "text/csv",
           },

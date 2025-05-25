@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { DataSource, EntityManager, Repository } from "typeorm";
+import { Between, DataSource, EntityManager, Repository } from "typeorm";
 import { Transaction } from "../../entities/transaction.entity";
 import { ITransactionRepository } from "../interfaces/transaction-repository.interface";
 
@@ -30,5 +30,19 @@ export class TransactionRepository implements ITransactionRepository {
       ? manager.getRepository(Transaction)
       : this.transactionRepo;
     return repository.save(transaction);
+  }
+
+  async findByDateRange(
+    startDate: Date,
+    endDate: Date,
+    manager?: EntityManager
+  ): Promise<Transaction[]> {
+    const repository = manager
+      ? manager.getRepository(Transaction)
+      : this.transactionRepo;
+    return repository.find({
+      where: { created_at: Between(startDate, endDate) },
+      order: { created_at: "ASC" },
+    });
   }
 }

@@ -9,4 +9,9 @@ export interface ITransactionRepository {
     manager?: EntityManager
   ): Promise<Transaction>;
   save(transaction: Transaction, manager?: EntityManager): Promise<Transaction>;
+  findByDateRange(
+    startDate: Date,
+    endDate: Date,
+    manager?: EntityManager
+  ): Promise<Transaction[]>;
 }

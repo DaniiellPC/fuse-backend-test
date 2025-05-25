@@ -16,9 +16,8 @@ export class PortfoliosController {
   async FindPortfolioByUserId(
     @Param("userId") userId: string
   ): Promise<FindPortfolioByUserIdResponseDTO> {
-    console.log("userId", userId);
-
     this.portfoliosService.validateUserId(userId);
+
     const portfolio = await this.portfoliosService.getPortfolioByUserId(userId);
 
     return FindPortfolioByUserIdResponseDTO.fromDomain(portfolio);

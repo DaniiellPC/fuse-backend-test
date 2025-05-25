@@ -31,4 +31,16 @@ export default () => ({
     entities: ["dist/**/*.entity{.ts,.js}"],
     autoLoadEntities: true,
   },
+  mailtrap: {
+    host: process.env.MAILTRAP_HOST || "smtp.mailtrap.io",
+    port: parseInt(process.env.MAILTRAP_PORT || "2525", 10),
+    secure: process.env.MAILTRAP_SECURE === "true",
+    user: process.env.MAILTRAP_USER || "",
+    pass: process.env.MAILTRAP_PASS || "",
+    maxEmailRetries: parseInt(
+      process.env.MAILTRAP_MAX_EMAIL_RETRIES || "3",
+      10
+    ),
+    emailRetryDelay: parseInt(process.env.MAILTRAP_DELAY_MS || "2000", 10),
+  },
 });

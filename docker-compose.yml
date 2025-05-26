@@ -4,9 +4,9 @@ services:
     image: postgres:16-alpine
     restart: always
     environment:
-      POSTGRES_DB: nest_stocks_db
-      POSTGRES_USER: nest_user
-      POSTGRES_PASSWORD: nest_password
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -16,6 +16,41 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  nestjs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: ${PORT}
+      FUSE_API_BASE_URL: ${FUSE_API_BASE_URL}
+      FUSE_API_KEY: ${FUSE_API_KEY}
+      FUSE_STOCK_CACHE_TTL_MS: ${FUSE_STOCK_CACHE_TTL_MS}
+      MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}
+      FUSE_MAX_API_RETRIES: ${FUSE_MAX_API_RETRIES}
+      # DB connection settings
+      DATABASE_HOST: db
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_SYNCHRONIZE: ${DATABASE_SYNCHRONIZE}
+      DATABASE_LOGGING: ${DATABASE_SYNCHRONIZE}
+      #Mail settings
+      MAILTRAP_HOST: ${MAILTRAP_HOST}
+      MAILTRAP_PORT: ${MAILTRAP_PORT}
+      MAILTRAP_SECURE: ${MAILTRAP_SECURE}
+      MAILTRAP_USER: ${MAILTRAP_USER}
+      MAILTRAP_PASS: ${MAILTRAP_PASS}
+      MAILTRAP_MAX_API_RETRIES: ${MAILTRAP_MAX_API_RETRIES}
+      MAILTRAP_DELAY_MS: ${MAILTRAP_DELAY_MS}
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   db_data:

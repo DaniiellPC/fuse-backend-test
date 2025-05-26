@@ -7,5 +7,6 @@ import { RepositoryModule } from "../../database/repositories/repository.module"
   imports: [RepositoryModule],
   controllers: [PortfoliosController],
   providers: [PortfoliosService],
+  exports: [PortfoliosService],
 })
 export class PortfoliosModule {}

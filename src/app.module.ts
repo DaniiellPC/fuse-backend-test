@@ -17,7 +17,6 @@ import { ReportsModule } from "./reports/reports.module";
     ReportsModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ".env",
       load: [config],
     }),
     CacheModule.registerAsync({

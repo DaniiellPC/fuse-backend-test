@@ -40,6 +40,11 @@ export class ReportsService {
     );
   }
 
+  /**
+   * Generates and sends a daily transactions report via email.
+   * This method is scheduled to run every minute for testing purposes.
+   * In production, it should be set to run once a day.
+   */
   @Cron(CronExpression.EVERY_MINUTE)
   async handleHourlyReport() {
     this.logger.log(
@@ -83,16 +88,16 @@ export class ReportsService {
       const mailOptions = {
         from: '"Transactions Reports" <reports@your-app.com>',
         to: "email_test@example.com",
-        subject: `Daily Transactions Report - ${now.toFormat("yyyy-mm-dd")}`,
+        subject: `Daily Transactions Report - ${now.toFormat("MM-dd-yyyy")}`,
         html: `<p>Hey,</p>
                 <p>Attached you will find the transactions report for the day ${now.toFormat(
-                  "yyyy-mm-dd"
+                  "MM-dd-yyyy"
                 )}.</p>
                <p>Greetings,</p>
                <p>NestJS Fuse Test</p>`,
         attachments: [
           {
-            filename: `transactions_${now.toFormat("yyyy-mm-dd")}.csv`,
+            filename: `transactions_${now.toFormat("MM-dd-yyyy")}.csv`,
             content: csv,
             contentType: "text/csv",
           },
@@ -107,7 +112,6 @@ export class ReportsService {
         "Email sending"
       );
 
-      await transporter.sendMail(mailOptions);
       this.logger.log("Email with report sended to MailTrap.IO sucessfully!");
     } catch (error) {
       this.logger.error("Error generating or sending report", error.stack);

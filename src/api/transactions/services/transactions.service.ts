@@ -21,10 +21,7 @@ import {
   TRANSACTION_REPOSITORY_TOKEN,
 } from "../../../database/repositories/interfaces/transaction-repository.interface";
 import { DataSource, EntityManager } from "typeorm";
-import {
-  IPortfolioRepository,
-  PORTFOLIO_REPOSITORY_TOKEN,
-} from "../../../database/repositories/interfaces/portfolio-repository.interface";
+import { PortfoliosService } from "../../portfolios/services/portfolios.service";
 
 @Injectable()
 export class TransactionsService {
@@ -37,8 +34,7 @@ export class TransactionsService {
     private readonly userRepository: IUserRepository,
     @Inject(TRANSACTION_REPOSITORY_TOKEN)
     private readonly transactionRepository: ITransactionRepository,
-    @Inject(PORTFOLIO_REPOSITORY_TOKEN)
-    private readonly portfolioRepository: IPortfolioRepository
+    private readonly portfoliosService: PortfoliosService
   ) {}
 
   async buyStock(body: BuyStockRequestDTO): Promise<Transaction> {
@@ -149,7 +145,7 @@ export class TransactionsService {
         await this.userRepository.save(user, manager);
         this.logger.log(`User ${userId} balance updated to ${user.balance}`);
 
-        await this.upsertPortfolio(
+        await this.portfoliosService.upsertPortfolio(
           userId,
           symbol,
           quantity,
@@ -193,49 +189,5 @@ export class TransactionsService {
     }
 
     return transactionRecord;
-  }
-
-  private async upsertPortfolio(
-    userId: string,
-    stockSymbol: string,
-    quantity: number,
-    clientPrice: number,
-    totalCost: number,
-    manager: EntityManager
-  ): Promise<void> {
-    let portfolioItem = await this.portfolioRepository.findOneByUserIdAndSymbol(
-      userId,
-      stockSymbol,
-      manager
-    );
-
-    if (portfolioItem) {
-      const currentTotalValue =
-        portfolioItem.quantity * portfolioItem.average_buy_price;
-      const newTotalValue = currentTotalValue + totalCost;
-      const newQuantity = portfolioItem.quantity + quantity;
-
-      portfolioItem.quantity = newQuantity;
-      portfolioItem.average_buy_price = parseFloat(
-        (newTotalValue / newQuantity).toFixed(4)
-      );
-      this.logger.log(
-        `Portfolio updated for user ${userId}, stock ${stockSymbol}. New quantity: ${portfolioItem.quantity}, Average price: ${portfolioItem.average_buy_price}`
-      );
-    } else {
-      portfolioItem = this.portfolioRepository.create(
-        {
-          user_id: userId,
-          stock_symbol: stockSymbol,
-          quantity: quantity,
-          average_buy_price: clientPrice,
-        },
-        manager
-      );
-      this.logger.log(
-        `New portfolio entry created for user ${userId}, stock ${stockSymbol}. Quantity: ${portfolioItem.quantity}`
-      );
-    }
-    await this.portfolioRepository.save(portfolioItem, manager);
   }
 }

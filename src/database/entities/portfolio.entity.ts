@@ -59,4 +59,20 @@ export class Portfolio {
       updated_at: this.updated_at,
     };
   }
+
+  getQuantity(): number {
+    return this.quantity;
+  }
+
+  getAverageBuyPrice(): number | undefined {
+    return this.average_buy_price;
+  }
+
+  setQuantity(quantity: number): void {
+    this.quantity = quantity;
+  }
+
+  setAverageBuyPrice(price: number): void {
+    this.average_buy_price = price;
+  }
 }

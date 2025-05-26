@@ -162,25 +162,6 @@ export class FuseService implements OnModuleInit {
     };
   }
 
-  getFuseStocks(param?: string): Observable<GetFuseStocksResponse> {
-    const url = `${this.baseUrl}/stocks${param ? `?nextToken=${param}` : ""}`;
-    this.logger.log(`Requesting data from FuseAPI: ${url}`);
-
-    const options = {
-      headers: {
-        "x-api-key": this.apiKey,
-      },
-    };
-
-    return this.httpService.get(url, options).pipe(
-      map((response: AxiosResponse) => response.data),
-      catchError((error) => {
-        this.logger.error("Error fetching data from FuseAPI", error);
-        throw error;
-      })
-    );
-  }
-
   /**
    * Gets a specific stock by his symbol, looking first in the cache
    * If it's not in the cache or if it's expired, triggers a complete update via fetchAndCacheAllStocksFromVendor
@@ -359,7 +340,7 @@ export class FuseService implements OnModuleInit {
     quantity: number
   ): Observable<BuyFuseStockResponse> {
     const url = `${this.baseUrl}/stocks/${symbolStock}/buy`;
-    this.logger.log(`Sending data from FuseAPI: ${url}`);
+    this.logger.log(`Sending data to FuseAPI: ${url}`);
 
     const options = {
       headers: {

@@ -10,6 +10,7 @@ export const retryOperation = async (
   let attempts = 0;
   while (attempts < maxRetries) {
     try {
+      logger.log(`Attempt ${attempts + 1} for ${context}`);
       return await operation();
     } catch (error) {
       attempts++;

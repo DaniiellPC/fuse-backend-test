@@ -50,9 +50,9 @@ This document outlines the rationale behind key database and ORM choices made fo
 
 ---
 
-## 3. Key Architectural Decisions & Tradeoffs
+## Key Architectural Decisions & Tradeoffs
 
-### 3.1. Pessimistic Locking for Balance Management
+### Pessimistic Locking for Balance Management
 
 For sensitive operations like deducting funds from a user's balance during a stock purchase, **Pessimistic Locking** (`pessimistic_write` mode in TypeORM) was chosen over Optimistic Locking.
 
@@ -68,7 +68,7 @@ For sensitive operations like deducting funds from a user's balance during a sto
     * **Potential for Deadlocks & Lock Timeouts:** If not managed carefully (e.g., ensuring consistent locking order), pessimistic locks can lead to deadlocks where two transactions indefinitely wait for each other to release a lock. Database-level `lock_timeout` configurations are crucial to mitigate this.
     * **Increased Database Overhead:** The database needs to manage and monitor these explicit locks, incurring a slight overhead.
 
-### 3.2. Explicit TypeORM Transactions
+### Explicit TypeORM Transactions
 
 All critical operations involving data consistency, such as stock purchases and balance updates, are wrapped in **explicit TypeORM transactions** using `dataSource.transaction(async (manager) => { ... })`.
 
@@ -85,7 +85,7 @@ All critical operations involving data consistency, such as stock purchases and 
 
 ---
 
-### 3.3. Database Seeding via TypeORM Migrations
+### Database Seeding via TypeORM Migrations
 
 Dummy user data for development and testing environments is managed through **TypeORM Migrations**.
 
@@ -100,6 +100,28 @@ Dummy user data for development and testing environments is managed through **Ty
 * **Tradeoffs:**
     * **Coupling with Schema Migrations:** While convenient, mixing data seeding directly into schema migrations can sometimes blur the lines between schema changes and data initialization. For very complex seeding, dedicated "seeder" libraries might be considered, but TypeORM's built-in capabilities suffice here.
     * **Development-Only Logic:** The logic to automatically run migrations on startup is conditional (`if (process.env.NODE_ENV === 'development')`) to prevent unintended data seeding or schema changes in production environments. Careful environment variable management is necessary.
+
+### Table Users migration Seed
+
+As explained before, the Table `Users` is loaded with a seed of a pre-defined Users to make simplier the Testing of the API (since it's not required an Users Management)
+This is the table created in the Migration, feel free to take any of these Id's to Test the API and the edge cases:
+
+| Id | Username | Email | Password Hash (Hashed "password123") | Balance | Created At | Updated At |
+|---|---|---|---|---|---|---|
+| `a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11` | `dummyuser1` | `user1@example.com` | `[Valor Hasheado]` | `1000.00` | `[Timestamp]` | `[Timestamp]` |
+| `bcff8bd0-3e6b-4edb-a3e9-94607e895b37` | `dummyuser2` | `user2@example.com` | `[Valor Hasheado]` | `0.00` | `[Timestamp]` | `[Timestamp]` |
+| `20354d7a-e4fe-47af-8ff6-187bca92f3f9` | `dummyuser3` | `user3@example.com` | `[Valor Hasheado]` | `100.75` | `[Timestamp]` | `[Timestamp]` |
+| `caa8b54a-eb5e-4134-8ae2-a3946a428ec7` | `dummyuser4` | `user4@example.com` | `[Valor Hasheado]` | `3000.00` | `[Timestamp]` | `[Timestamp]` |
+| `bd2cbad1-6ccf-48e3-bb92-bc9961bc011e` | `dummyuser5` | `user5@example.com` | `[Valor Hasheado]` | `1500.00` | `[Timestamp]` | `[Timestamp]` |
+| `b5e2cf01-8bb6-4fcd-ad88-0efb611195da` | `dummyuser6` | `user6@example.com` | `[Valor Hasheado]` | `2000.00` | `[Timestamp]` | `[Timestamp]` |
+| `f58a75af-5e21-4ef7-99e2-8cab60d24edf` | `dummyuser7` | `user7@example.com` | `[Valor Hasheado]` | `750.00` | `[Timestamp]` | `[Timestamp]` |
+| `397ce57f-675d-4b99-8260-465245053aa4` | `dummyuser8` | `user8@example.com` | `[Valor Hasheado]` | `4000.50` | `[Timestamp]` | `[Timestamp]` |
+| `b19b88b0-d88f-4acc-9b7f-6b5595606796` | `dummyuser9` | `user9@example.com` | `[Valor Hasheado]` | `1200.00` | `[Timestamp]` | `[Timestamp]` |
+| `d69c0416-f6ed-4ffc-b2dd-d9d1c990ab48` | `dummyuser10` | `user10@example.com` | `[Valor Hasheado]` | `3500.00` | `[Timestamp]` | `[Timestamp]` |
+
+The column `password_hash` will have the value "password123" hashed with bcrypt, and the `created_at` and `updated_at` columns will have the exact timestamp at the moment of the migration execution.
+
+---
 
 ## GetStocks
 
@@ -434,7 +456,7 @@ The cron job is designed to run periodically, query the database for the day's t
 #### Execution Flow
 
 1.  The NestJS application starts, and the `ScheduleModule` registers the cron job.
-2.  According to its schedule (`@Cron('* * * * *')` for every minute during the PoC, though `CronExpression.EVERY_DAT_AT_NOON` is recommended for production), the `handleHourlyReport` method in `ReportsService` is triggered.
+2.  According to its schedule (`@Cron('* * * * *')` for every minute during the PoC, though `CronExpression.EVERY_DAT_AT_MIDNIGHT` is recommended for production), the `handleHourlyReport` method in `ReportsService` is triggered.
 3.  `handleHourlyReport` queries the database for all transactions created from the beginning of the current day up to the present moment.
 4.  If transactions are found, `generateCsv` in `csv.util.ts` is called to convert the data into CSV format.
 5.  The email body is constructed, and the generated CSV is attached.

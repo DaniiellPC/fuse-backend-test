@@ -1,51 +1,75 @@
 # fuse-backend-test
 
-graph TD
-    subgraph Cliente/Usuario
-        A[Navegador Web / Aplicación Móvil / Postman]
-    end
+# Local NestJS Server Setup with Docker 🐳
 
-    subgraph Internet
-        B((Internet))
-    end
+This guide outlines the steps to set up and run your NestJS application locally using Docker, ensuring a consistent and isolated development environment across different machines.
 
-    subgraph Amazon Web Services - AWS Cloud
-        subgraph Red Virtual - VPC
-            subgraph Subred Pública
-                C[Elastic IP EIP o DNS Público EC2]
-                D[Security Group Firewall]
-                E(EC2 Instance: t2.micro)
-                F(EBS Volume: Almacenamiento)
-            end
-            subgraph Servicios Administrados
-                G[DynamoDB Base de Datos NoSQL]
-                H[CloudWatch Monitoreo y Logs]
-            end
-        end
-    end
+---
 
-    A --> B
-    B --> C
-    C --> D
-    D -- Permite tráfico (Puertos 80, 443, 22) --> E
-    E -- Almacena sistema operativo y código --> F
-    E -- Ejecuta: Node.js App, PM2, Nginx (Opcional) --> E
-    E -- Llama a API de AWS --> G
-    E -- Envía Logs y Métricas --> H
+## Prerequisites 🛠️
 
-    style A fill:#D0E7F5,stroke:#333,stroke-width:2px,color:#000
-    style B fill:#E0E0E0,stroke:#666,stroke-width:2px,color:#000
-    style C fill:#FFF2CC,stroke:#FFC107,stroke-width:2px,color:#000
-    style D fill:#FFCCCC,stroke:#FF0000,stroke-width:2px,color:#000
-    style E fill:#D4EDDA,stroke:#28A745,stroke-width:2px,color:#000
-    style F fill:#F8F9FA,stroke:#6C757D,stroke-width:2px,color:#000
-    style G fill:#DAF7A6,stroke:#8BC34A,stroke-width:2px,color:#000
-    style H fill:#ADD8E6,stroke:#1E90FF,stroke-width:2px,color:#000
+* **Docker Desktop:** Ensure you have Docker Desktop installed on your system. You can download it from the [official Docker website](https://www.docker.com/products/docker-desktop/).
 
-    linkStyle 0 stroke:#000,stroke-width:1.5px,fill:none;
-    linkStyle 1 stroke:#000,stroke-width:1.5px,fill:none;
-    linkStyle 2 stroke:#000,stroke-width:1.5px,fill:none;
-    linkStyle 3 stroke:#000,stroke-width:1.5px,fill:none;
-    linkStyle 4 stroke:#000,stroke-width:1.5px,fill:none;
-    linkStyle 5 stroke:#000,stroke-width:1.5px,fill:none;
-    linkStyle 6 stroke:#000,stroke-width:1.5px,fill:none;
+---
+
+## Setup and Execution Steps ▶️
+
+Follow these steps to get your NestJS server running:
+
+1.  **Create `.env` file:**
+    Create a `.env` file in the root directory of your project. This file will contain environment variables necessary for this application and Docker Compose. It's crucial for configuring database connections, API keys, and other sensitive settings. A typical `.env` file might include: or `PORT=3000`. Ensure you fill in the correct values for this specific project. **IMPORTANT: For this test you must copy the variables and values from the file: `.env.example`**
+
+2.  **Start Docker Services:**
+    Execute the following command in the project's root directory to build and start the Docker services defined in your `docker-compose.yml` file in detached mode:
+
+    ```bash
+    docker-compose up --build -d
+    ```
+
+3.  **Verify Running Containers:**
+    Check the status of the Docker containers to ensure they are running correctly:
+
+    ```bash
+    docker-compose ps
+    ```
+
+4.  **Run Database Migrations:**
+    Once the `nestjs-app` service (as defined in the `docker-compose.yml`) is up, run the database migrations for the PostgreSQL database. This command executes the migrations within the `nestjs-app` container:
+
+    ```bash
+    docker-compose run --rm nestjs-app npm run migration:run
+    ```
+
+---
+
+## Additional Commands ⚙️
+
+Here are some additional useful commands for managing the Dockerized NestJS application:
+
+* **View NestJS Logs:**
+    To stream the logs from the NestJS application container in real-time:
+
+    ```bash
+    docker-compose logs -f nestjs-app
+    ```
+
+* **Stop Services:**
+    To stop all services defined in the `docker-compose.yml` file:
+
+    ```bash
+    docker-compose down
+    ```
+
+* **Stop Services and Remove Volumes:**
+    To stop services and remove any named volumes created by Docker Compose (useful for a clean slate):
+
+    ```bash
+    docker-compose down --volumes
+    ```
+
+* **Clean Rebuild of NestJS App:**
+    To perform a clean rebuild of only the `nestjs-app` service, ignoring cached layers:
+
+    ```bash
+    docker-compose build --no-cache nestjs-app
+    ```

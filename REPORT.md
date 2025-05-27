@@ -108,16 +108,16 @@ This is the table created in the Migration, feel free to take any of these Id's 
 
 | Id | Username | Email | Password Hash (Hashed "password123") | Balance | Created At | Updated At |
 |---|---|---|---|---|---|---|
-| `a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11` | `dummyuser1` | `user1@example.com` | `[Valor Hasheado]` | `1000.00` | `[Timestamp]` | `[Timestamp]` |
-| `bcff8bd0-3e6b-4edb-a3e9-94607e895b37` | `dummyuser2` | `user2@example.com` | `[Valor Hasheado]` | `0.00` | `[Timestamp]` | `[Timestamp]` |
-| `20354d7a-e4fe-47af-8ff6-187bca92f3f9` | `dummyuser3` | `user3@example.com` | `[Valor Hasheado]` | `100.75` | `[Timestamp]` | `[Timestamp]` |
-| `caa8b54a-eb5e-4134-8ae2-a3946a428ec7` | `dummyuser4` | `user4@example.com` | `[Valor Hasheado]` | `3000.00` | `[Timestamp]` | `[Timestamp]` |
-| `bd2cbad1-6ccf-48e3-bb92-bc9961bc011e` | `dummyuser5` | `user5@example.com` | `[Valor Hasheado]` | `1500.00` | `[Timestamp]` | `[Timestamp]` |
-| `b5e2cf01-8bb6-4fcd-ad88-0efb611195da` | `dummyuser6` | `user6@example.com` | `[Valor Hasheado]` | `2000.00` | `[Timestamp]` | `[Timestamp]` |
-| `f58a75af-5e21-4ef7-99e2-8cab60d24edf` | `dummyuser7` | `user7@example.com` | `[Valor Hasheado]` | `750.00` | `[Timestamp]` | `[Timestamp]` |
-| `397ce57f-675d-4b99-8260-465245053aa4` | `dummyuser8` | `user8@example.com` | `[Valor Hasheado]` | `4000.50` | `[Timestamp]` | `[Timestamp]` |
-| `b19b88b0-d88f-4acc-9b7f-6b5595606796` | `dummyuser9` | `user9@example.com` | `[Valor Hasheado]` | `1200.00` | `[Timestamp]` | `[Timestamp]` |
-| `d69c0416-f6ed-4ffc-b2dd-d9d1c990ab48` | `dummyuser10` | `user10@example.com` | `[Valor Hasheado]` | `3500.00` | `[Timestamp]` | `[Timestamp]` |
+| `a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11` | `dummyuser1` | `user1@example.com` | `[Hashed Value]` | `1000.00` | `[Timestamp]` | `[Timestamp]` |
+| `bcff8bd0-3e6b-4edb-a3e9-94607e895b37` | `dummyuser2` | `user2@example.com` | `[Hashed Value]` | `0.00` | `[Timestamp]` | `[Timestamp]` |
+| `20354d7a-e4fe-47af-8ff6-187bca92f3f9` | `dummyuser3` | `user3@example.com` | `[Hashed Value]` | `100.75` | `[Timestamp]` | `[Timestamp]` |
+| `caa8b54a-eb5e-4134-8ae2-a3946a428ec7` | `dummyuser4` | `user4@example.com` | `[Hashed Value]` | `3000.00` | `[Timestamp]` | `[Timestamp]` |
+| `bd2cbad1-6ccf-48e3-bb92-bc9961bc011e` | `dummyuser5` | `user5@example.com` | `[Hashed Value]` | `1500.00` | `[Timestamp]` | `[Timestamp]` |
+| `b5e2cf01-8bb6-4fcd-ad88-0efb611195da` | `dummyuser6` | `user6@example.com` | `[Hashed Value]` | `2000.00` | `[Timestamp]` | `[Timestamp]` |
+| `f58a75af-5e21-4ef7-99e2-8cab60d24edf` | `dummyuser7` | `user7@example.com` | `[Hashed Value]` | `750.00` | `[Timestamp]` | `[Timestamp]` |
+| `397ce57f-675d-4b99-8260-465245053aa4` | `dummyuser8` | `user8@example.com` | `[Hashed Value]` | `4000.50` | `[Timestamp]` | `[Timestamp]` |
+| `b19b88b0-d88f-4acc-9b7f-6b5595606796` | `dummyuser9` | `user9@example.com` | `[Hashed Value]` | `1200.00` | `[Timestamp]` | `[Timestamp]` |
+| `d69c0416-f6ed-4ffc-b2dd-d9d1c990ab48` | `dummyuser10` | `user10@example.com` | `[Hashed Value]` | `3500.00` | `[Timestamp]` | `[Timestamp]` |
 
 The column `password_hash` will have the value "password123" hashed with bcrypt, and the `created_at` and `updated_at` columns will have the exact timestamp at the moment of the migration execution.
 

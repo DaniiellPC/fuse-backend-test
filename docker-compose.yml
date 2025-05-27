@@ -20,7 +20,7 @@ services:
   nestjs-app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.development
     container_name: nestjs_app
     restart: always
     ports:
@@ -39,7 +39,7 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_NAME: ${DATABASE_NAME}
       DATABASE_SYNCHRONIZE: ${DATABASE_SYNCHRONIZE}
-      DATABASE_LOGGING: ${DATABASE_SYNCHRONIZE}
+      DATABASE_LOGGING: ${DATABASE_LOGGING}
       #Mail settings
       MAILTRAP_HOST: ${MAILTRAP_HOST}
       MAILTRAP_PORT: ${MAILTRAP_PORT}
@@ -51,6 +51,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
 
 volumes:
   db_data:

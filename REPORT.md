@@ -24,7 +24,7 @@ This document outlines the rationale behind key database and ORM choices made fo
 ### Key Advantages:
 
 * **Reliability & Data Integrity:** PostgreSQL is renowned for its stability, adherence to SQL standards, and strong support for ACID (Atomicity, Consistency, Isolation, Durability) properties, making it an excellent choice for financial transactions and critical data.
-* **Advanced Features:** It offers a rich set of advanced features out-of-the-box, including JSONB support, geospatial data types (PostGIS), full-text search, and a highly extensible plugin system. This provides flexibility for future enhancements without needing to switch databases.
+* **Advanced Features:** It offers a rich set of advanced features out-of-the-box, including JSONB support, geo-spatial data types (PostGIS), full-text search, and a highly extensible plugin system. This provides flexibility for future enhancements without needing to switch databases.
 * **Concurrency Control:** PostgreSQL's Multi-Version Concurrency Control (MVCC) ensures high concurrency by allowing readers and writers to operate on different versions of data, minimizing lock contention.
 * **Open Source & Community Support:** Being open-source, it benefits from a large, active community, ensuring continuous development, extensive documentation, and readily available support.
 * **Scalability:** While traditionally seen as a vertical scaler, PostgreSQL can be scaled horizontally with various techniques and tools, making it suitable for growing applications.
@@ -103,7 +103,7 @@ Dummy user data for development and testing environments is managed through **Ty
 
 ### Table Users migration Seed
 
-As explained before, the Table `Users` is loaded with a seed of a pre-defined Users to make simplier the Testing of the API (since it's not required an Users Management)
+As explained before, the Table `Users` is loaded with a seed of a pre-defined Users to make simpler the Testing of the API (since it's not required an Users Management)
 This is the table created in the Migration, feel free to take any of these Id's to Test the API and the edge cases:
 
 | Id | Username | Email | Password Hash (Hashed "password123") | Balance | Created At | Updated At |
@@ -456,7 +456,7 @@ The cron job is designed to run periodically, query the database for the day's t
 #### Execution Flow
 
 1.  The NestJS application starts, and the `ScheduleModule` registers the cron job.
-2.  According to its schedule (`@Cron('* * * * *')` for every minute during the PoC, though `CronExpression.EVERY_DAT_AT_MIDNIGHT` is recommended for production), the `handleHourlyReport` method in `ReportsService` is triggered.
+2.  According to its schedule (`@Cron('* * * * *')` for every minute during the develop execution, though `CronExpression.EVERY_DAT_AT_MIDNIGHT` is recommended for production), the `handleHourlyReport` method in `ReportsService` is triggered.
 3.  `handleHourlyReport` queries the database for all transactions created from the beginning of the current day up to the present moment.
 4.  If transactions are found, `generateCsv` in `csv.util.ts` is called to convert the data into CSV format.
 5.  The email body is constructed, and the generated CSV is attached.
@@ -493,7 +493,7 @@ The cron job is designed to run periodically, query the database for the day's t
 
 ### Considered Alternatives (For Future Projects or Scalability)
 
-While Mailtrap.io is ideal for this test, robust alternatives exist that would be more suitable for production environments or PoCs requiring delivery to real recipients with (or without) a custom domain.
+While Mailtrap.io is ideal for this test, robust alternatives exist that would be more suitable for production environments, Tests PoCs requiring delivery to real recipients with (or without) a custom domain.
 
 #### Transactional Email Services (Free Tiers without Custom Domain)
 
@@ -537,7 +537,7 @@ The current cron job implementation using `@nestjs/schedule`, the custom CSV uti
 
 ## What's Next? Future Enhancements
 
-This project is part of a challenge with some specific requeriments and focused on a **local deployment**, however for future integrations, several key areas should be addressed to ensure its robustness, security, scalability, and maintainability.
+This project is part of a challenge with some specific requirements and focused on a **local deployment**, however for future integrations, several key areas should be addressed to ensure its robustness, security, scalability, and maintainability.
 
 ### Comprehensive Unit Testing
 
@@ -551,7 +551,6 @@ This project is part of a challenge with some specific requeriments and focused 
 
 * **Objective**: Establish a scalable, reliable, and automated deployment pipeline for the Node.js application.
 * **Actions**:
-    * **Containerization**: Create a **Docker image** for the NestJS application, ensuring all dependencies are bundled.
     * **Orchestration**: Deploy the Docker images to a container orchestration service like **AWS Elastic Kubernetes Service (EKS)** or **AWS Elastic Container Service (ECS)**.
         * **EKS**: Offers a highly scalable and resilient Kubernetes cluster, ideal for complex microservices architectures.
         * **ECS**: A simpler, fully managed container orchestration service that might be more suitable for initial deployments or less complex setups.

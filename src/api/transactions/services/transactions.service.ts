@@ -66,9 +66,9 @@ export class TransactionsService {
         message: "Purchase initiated, awaiting confirmation and validation",
       });
 
-      if (initialUser.balance < totalCost) {
+      if (initialUser.getBalance() < totalCost) {
         this.logger.warn(
-          `Purchase failed for user ${userId}: insufficient balance (pre-validation). Cost: ${totalCost}, Balance: ${initialUser.balance}`
+          `Purchase failed for user ${userId}: insufficient balance (pre-validation). Cost: ${totalCost}, Balance: ${initialUser.getBalance()}`
         );
         transactionRecord.updateStatus(TransactionStatus.FAILED);
         transactionRecord.setMessage("Insufficient Funds");
@@ -127,7 +127,7 @@ export class TransactionsService {
           );
         }
 
-        if (user.balance < totalCost) {
+        if (user.getBalance() < totalCost) {
           transactionRecord.updateStatus(TransactionStatus.FAILED);
           transactionRecord.setMessage(
             "Race Condition: Insufficient Funds during purchase confirmation"
@@ -150,9 +150,11 @@ export class TransactionsService {
           `Buy transaction COMPLETED in DB for user ${userId}, stock ${symbol}. ID: ${transactionRecord.id}`
         );
 
-        user.balance = parseFloat((user.balance - totalCost).toFixed(4));
+        user.setBalance(parseFloat((user.getBalance() - totalCost).toFixed(4)));
         await this.userRepository.save(user, manager);
-        this.logger.log(`User ${userId} balance updated to ${user.balance}`);
+        this.logger.log(
+          `User ${userId} balance updated to ${user.getBalance()}`
+        );
 
         await this.portfoliosService.upsertPortfolio(
           userId,

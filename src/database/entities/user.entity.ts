@@ -37,4 +37,12 @@ export class User {
 
   @OneToMany(() => Portfolio, (portfolio) => portfolio.user)
   portfolios: Portfolio[];
+
+  getBalance(): number {
+    return this.balance;
+  }
+
+  setBalance(balance: number): void {
+    this.balance = balance;
+  }
 }

@@ -4,9 +4,9 @@ module.exports = {
   testEnvironment: "node",
   testRegex: ".spec.ts$",
   transform: {
-    "^.+\\.(t|j)s$": "ts-jest",
+    "^.+\\.ts$": "ts-jest",
   },
-  setupFilesAfterEnv: ["<rootDir>/test/integration/setup.ts"],
+  globalSetup: "<rootDir>/test/integration/setup.ts",
   collectCoverageFrom: ["**/*.(t|j)s"],
   coverageDirectory: "./coverage",
   moduleNameMapper: {

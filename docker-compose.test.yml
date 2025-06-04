@@ -1,0 +1,51 @@
+# docker-compose.test.yml
+version: '3.8'
+
+services:
+  db_test:
+    image: postgres:16-alpine
+    restart: "no"
+    environment:
+      POSTGRES_DB: db_integration_test
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d db_integration_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  test_runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: nestjs_integration_tests
+    environment:
+      FUSE_API_BASE_URL: http://mocked-fuse-api.com
+      FUSE_API_KEY: mocked-fuse-api-key
+      DATABASE_HOST: db_test
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: testuser
+      DATABASE_PASSWORD: testpassword
+      DATABASE_NAME: db_integration_test
+      DATABASE_SYNCHRONIZE: "false"
+      DATABASE_LOGGING: "false"
+      MAILTRAP_HOST: smtp.mailtrap.io
+      MAILTRAP_PORT: 2525
+      MAILTRAP_SECURE: "false"
+      MAILTRAP_USER: mailtrap_user
+      MAILTRAP_PASS: mailtrap_password
+      MAILTRAP_MAX_API_RETRIES: 3
+      MAILTRAP_DELAY_MS: 1000
+      IS_DOCKERIZED_TEST: "true"
+    depends_on:
+      db_test:
+        condition: service_healthy
+    command: npm run test:integration_docker
+
+volumes:
+  db_test_data:

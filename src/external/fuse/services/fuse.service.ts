@@ -55,9 +55,10 @@ export class FuseService implements OnModuleInit {
   // Run once the module has been initialized
   async onModuleInit() {
     this.logger.log(
-      "VendorService initialized. Performing initial stock loading."
+      "VendorService initialized. Performing initial stock loading. (onModuleInit)"
     );
     await this.fetchAndCacheAllStocksFromVendor();
+    this.logger.log("Initial stock loading completed. (onModuleInit)");
   }
 
   /**
@@ -87,35 +88,73 @@ export class FuseService implements OnModuleInit {
       `Request to get stocks (Page: ${page}, Limit: ${limit}). Trying to read from cache.`
     );
 
+    const cachedSymbolsBeforeAttempt: string[] | undefined =
+      await this.cacheManager.get(this.ALL_STOCKS_SYMBOLS_CACHE_KEY);
+    this.logger.log(
+      `[getAllStocks] Cache state for ${
+        this.ALL_STOCKS_SYMBOLS_CACHE_KEY
+      } BEFORE conditional fetch: ${JSON.stringify(
+        cachedSymbolsBeforeAttempt
+      )} (Type: ${typeof cachedSymbolsBeforeAttempt})`
+    );
+
     let allSymbols: string[] | undefined = await this.cacheManager.get(
       this.ALL_STOCKS_SYMBOLS_CACHE_KEY
     );
 
-    // If cache is empty or expired, force a complete update
-    if (!allSymbols || allSymbols.length === 0) {
+    // If cache is truly empty (key not found or value is null/undefined),
+    // then force an update from the vendor.
+    // An existing empty array in the cache is a valid state from a previous successful fetch.
+    if (allSymbols === undefined || allSymbols === null) {
       this.logger.warn(
-        "Cache of symbols empty or expired. Forcing update from Vendor."
+        "Cache of symbols is uninitialized (undefined/null). Forcing update from Vendor."
       );
       try {
         await this.fetchAndCacheAllStocksFromVendor();
         allSymbols = await this.cacheManager.get(
           this.ALL_STOCKS_SYMBOLS_CACHE_KEY
         ); // Re-read after update
-        if (!allSymbols || allSymbols.length === 0) {
+
+        // After attempting to fetch, if allSymbols is still undefined or null,
+        // it indicates a failure to populate the cache.
+        if (allSymbols === undefined || allSymbols === null) {
           this.logger.error(
-            "Could not get stock symbols even after Vendor update."
+            "Stock symbols cache remains uninitialized even after attempting Vendor update."
           );
           throw new HttpException(
-            "Could not get available stocks.",
+            "Could not initialize stock symbols from vendor.", // More accurate message
             HttpStatus.SERVICE_UNAVAILABLE
           );
         }
-      } catch (error) {
-        this.logger.error(
-          `Error while forcing update and getting stock symbols: ${error.message}`
+        // If allSymbols is an empty array [], this is a valid state (vendor returned no stocks).
+        // The service will then proceed to return a paginated list with 0 items.
+        this.logger.log(
+          `Successfully updated symbols cache from vendor. Current symbol count: ${allSymbols.length}`
         );
-        throw error;
+      } catch (error) {
+        // This catches errors from fetchAndCacheAllStocksFromVendor
+        this.logger.error(
+          `Failed to update symbols from vendor: ${error.message}`,
+          error.stack
+        );
+        throw new HttpException(
+          "Could not get available stocks.",
+          HttpStatus.SERVICE_UNAVAILABLE
+        );
       }
+    }
+
+    // At this point, allSymbols should be an array (possibly empty).
+    // If it were undefined/null, an error would have been thrown in the block above.
+    // Adding a safeguard, though this state should ideally not be reached.
+    if (allSymbols === undefined || allSymbols === null) {
+      this.logger.error(
+        "Critical: allSymbols is unexpectedly null/undefined before pagination logic."
+      );
+      throw new HttpException(
+        "Internal error processing stock symbols.",
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
 
     const totalStocks = allSymbols.length;
@@ -373,9 +412,9 @@ export class FuseService implements OnModuleInit {
    */
   private async fetchAndCacheAllStocksFromVendor(): Promise<void> {
     this.logger.log(
-      "Starting _fetchAndCacheAllStocksFromVendor: Getting fresh data from Vendor."
+      "Starting fetchAndCacheAllStocksFromVendor: Getting fresh data from Vendor."
     );
-    let allSymbols: string[] = []; // To store only the symbols
+    let allSymbolsLocal: string[] = []; // To store only the symbols for the current fetch operation
     let currentNextToken: string | undefined = undefined;
     let pageCount = 0;
 
@@ -384,7 +423,7 @@ export class FuseService implements OnModuleInit {
         pageCount++;
         if (pageCount > this.maxPagesToFetch) {
           this.logger.warn(
-            `Limit of ${this.maxPagesToFetch} pages reached in _fetchAndCacheAllStocksFromVendor. Stopping pagination.`
+            `Limit of ${this.maxPagesToFetch} pages reached in fetchAndCacheAllStocksFromVendor. Stopping pagination.`
           );
           break;
         }
@@ -402,7 +441,7 @@ export class FuseService implements OnModuleInit {
               retry(this.maxApiRetries),
               catchError((error) => {
                 this.logger.error(
-                  `Error fetching stocks from Vendor (Page ${pageCount}) in _fetchAndCacheAllStocksFromVendor: ${error.message}`,
+                  `Error fetching stocks from Vendor (Page ${pageCount}) in fetchAndCacheAllStocksFromVendor: ${error.message}`,
                   error.stack
                 );
                 throw new HttpException(
@@ -416,7 +455,7 @@ export class FuseService implements OnModuleInit {
         const data = response.data.data;
         if (!data || !data.items) {
           this.logger.warn(
-            `Vendor did not return data or items on page ${pageCount} in _fetchAndCacheAllStocksFromVendor.`
+            `Vendor did not return data or items on page ${pageCount} in fetchAndCacheAllStocksFromVendor.`
           );
           break;
         }
@@ -429,7 +468,7 @@ export class FuseService implements OnModuleInit {
             stock,
             this.cacheTtlMilis
           );
-          allSymbols.push(stock.symbol);
+          allSymbolsLocal.push(stock.symbol); // Use local variable for this fetch
           this.logger.debug(`Cached stock: ${stock.symbol}`);
         }
 
@@ -454,16 +493,31 @@ export class FuseService implements OnModuleInit {
       } while (true);
     } catch (error) {
       this.logger.error(
-        `Critical failure getting stocks from Vendor in _fetchAndCacheAllStocksFromVendor: ${error.message}`
+        `Critical failure getting stocks from Vendor in fetchAndCacheAllStocksFromVendor: ${error.message}`
       );
       throw error;
     }
 
-    const uniqueSymbols = [...new Set(allSymbols)];
+    const uniqueSymbols = [...new Set(allSymbolsLocal)]; // Use local variable
+    this.logger.log(
+      `[fetchAndCacheAllStocksFromVendor] Attempting to set ${
+        this.ALL_STOCKS_SYMBOLS_CACHE_KEY
+      } in cache with ${uniqueSymbols.length} symbols: ${JSON.stringify(
+        uniqueSymbols
+      )}`
+    );
     await this.cacheManager.set(
       this.ALL_STOCKS_SYMBOLS_CACHE_KEY,
       uniqueSymbols,
       this.cacheTtlMilis
+    );
+    const afterSetCheck: string[] | undefined = await this.cacheManager.get(
+      this.ALL_STOCKS_SYMBOLS_CACHE_KEY
+    );
+    this.logger.log(
+      `[fetchAndCacheAllStocksFromVendor] Cache state for ${
+        this.ALL_STOCKS_SYMBOLS_CACHE_KEY
+      } AFTER set: ${JSON.stringify(afterSetCheck)}`
     );
 
     this.logger.log(

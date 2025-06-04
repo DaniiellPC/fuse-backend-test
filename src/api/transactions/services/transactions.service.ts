@@ -39,36 +39,38 @@ export class TransactionsService {
 
   async buyStock(body: BuyStockRequestDTO): Promise<Transaction> {
     const { symbol, price, quantity, userId } = body;
-    const totalCost = quantity * price;
-    const transactionRecord = Transaction.create({
-      user_id: userId,
-      stock_symbol: symbol,
-      transaction_type: TransactionType.BUY,
-      quantity,
-      price_at_transaction: price,
-      total_amount: totalCost,
-      status: TransactionStatus.PENDING,
-      created_at: new Date(),
-      transaction_date: new Date(),
-      message: "Purchase initiated, awaiting confirmation and validation",
-    });
+    let transactionRecord: Transaction | null = null;
 
     try {
       const initialUser = await this.userRepository.findOneById(userId);
 
       if (!initialUser) {
-        transactionRecord.updateStatus(TransactionStatus.FAILED);
-        transactionRecord.setMessage("User Not Found");
-        await this.transactionRepository.createAndSave(transactionRecord);
+        this.logger.warn(
+          `Attempt to buy stock for non-existent user: ${userId}`
+        );
         throw new HttpException("User Not Found", HttpStatus.NOT_FOUND);
       }
+
+      // User exists, now create the transaction record
+      const totalCost = quantity * price;
+      transactionRecord = Transaction.create({
+        user_id: userId,
+        stock_symbol: symbol,
+        transaction_type: TransactionType.BUY,
+        quantity,
+        price_at_transaction: price,
+        total_amount: totalCost,
+        status: TransactionStatus.PENDING,
+        created_at: new Date(),
+        transaction_date: new Date(),
+        message: "Purchase initiated, awaiting confirmation and validation",
+      });
 
       if (initialUser.balance < totalCost) {
         this.logger.warn(
           `Purchase failed for user ${userId}: insufficient balance (pre-validation). Cost: ${totalCost}, Balance: ${initialUser.balance}`
         );
         transactionRecord.updateStatus(TransactionStatus.FAILED);
-
         transactionRecord.setMessage("Insufficient Funds");
         await this.transactionRepository.createAndSave(transactionRecord);
         throw new HttpException("Insufficient Funds", HttpStatus.BAD_REQUEST);
@@ -86,6 +88,7 @@ export class TransactionsService {
         transactionRecord.setMessage(
           "The purchase price is not correct or valid."
         );
+        await this.transactionRepository.createAndSave(transactionRecord);
         throw new HttpException(
           "The purchase price is not correct or valid.",
           HttpStatus.BAD_REQUEST
@@ -99,29 +102,36 @@ export class TransactionsService {
         transactionRecord
       );
 
+      // If fuseService.processExternalPurchase updated transactionRecord to FAILED,
+      // we should check its status before proceeding to the database transaction.
+      if (transactionRecord.getStatus() === TransactionStatus.FAILED) {
+        await this.transactionRepository.save(transactionRecord);
+        throw new HttpException(
+          transactionRecord.getMessage(),
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+
       await this.dataSource.transaction(async (manager: EntityManager) => {
         const user = await this.userRepository.findOneByIdWithLock(
           userId,
           manager
         );
+        // User should exist due to the initial check, but re-verify in transaction
         if (!user) {
-          //this shouldn't happen, but just in case
           transactionRecord.updateStatus(TransactionStatus.FAILED);
           transactionRecord.setMessage("User Not Found In Transaction");
           throw new HttpException(
-            "Usuario no encontrado en transacción.",
+            "User not found in transaction.",
             HttpStatus.NOT_FOUND
           );
         }
 
-        // Re-verification of balance after acquiring the lock
         if (user.balance < totalCost) {
           transactionRecord.updateStatus(TransactionStatus.FAILED);
-
           transactionRecord.setMessage(
             "Race Condition: Insufficient Funds during purchase confirmation"
           );
-
           this.logger.warn(
             `Race condition detected for user ${userId}: insufficient funds after API call. TotalCost: ${totalCost}, Balance: ${user.balance}`
           );
@@ -140,7 +150,6 @@ export class TransactionsService {
           `Buy transaction COMPLETED in DB for user ${userId}, stock ${symbol}. ID: ${transactionRecord.id}`
         );
 
-        // Deduct from the user's balance
         user.balance = parseFloat((user.balance - totalCost).toFixed(4));
         await this.userRepository.save(user, manager);
         this.logger.log(`User ${userId} balance updated to ${user.balance}`);
@@ -154,40 +163,58 @@ export class TransactionsService {
           manager
         );
       });
+
+      // If dataSource.transaction committed, transactionRecord is COMPLETED and saved.
+      return transactionRecord;
     } catch (error) {
-      // This main catch block captures *all* errors (validations, external API, DB).
       this.logger.error(
         `General error for user ${userId}: ${error.message}`,
         error.stack
       );
 
-      // If transactionRecord has not been created for some extreme reason, or does not have an ID,
-      // this could fail. But given the flow, it should always exist here.
-      // Ensure that the transaction is marked as FAILED if it wasn't already.
-      if (
-        transactionRecord &&
-        transactionRecord.getStatus() !== TransactionStatus.COMPLETED
-      ) {
-        transactionRecord.updateStatus(TransactionStatus.FAILED);
-        transactionRecord.setMessage(
-          transactionRecord.getMessage() || `Unexpected error: ${error.message}`
-        );
+      // If the error is one we threw intentionally (like User Not Found, Insufficient Funds, Invalid Price)
+      // and we've already saved the transaction as FAILED, or decided not to save (for User Not Found),
+      // then just re-throw.
+      if (error instanceof HttpException) {
+        // If transactionRecord exists and was marked FAILED but not saved due to an error during saving,
+        // this finally block might try to save it.
+        // For "User Not Found", transactionRecord will be null, so finally block won't save.
+        // For other HttpExceptions where transactionRecord was created and saved as FAILED, this is fine.
+        throw error;
       }
 
+      // For unexpected errors, if transactionRecord was created (meaning user was found)
+      if (transactionRecord) {
+        if (
+          transactionRecord.getStatus() !== TransactionStatus.COMPLETED &&
+          transactionRecord.getStatus() !== TransactionStatus.FAILED
+        ) {
+          transactionRecord.updateStatus(TransactionStatus.FAILED);
+          transactionRecord.setMessage(
+            `Unexpected error during processing: ${error.message}`
+          );
+        }
+        // Attempt to save the final state if it hasn't been saved yet or if it's a new failure state.
+        // This covers cases where an error occurred after transactionRecord was created but before it could be
+        // definitively saved as COMPLETED or FAILED within the try block.
+        // Ensure not to re-save if it was already persisted in a terminal state from within the try.
+        // The transactionRepository.save should handle upsert logic or be idempotent for status updates.
+        // However, if the error was, for example, a DB connection error during the main transaction block,
+        // this save might also fail.
+        try {
+          await this.transactionRepository.save(transactionRecord);
+          this.logger.log(
+            `Transaction ${
+              transactionRecord.id
+            } for user ${userId} saved with status ${transactionRecord.getStatus()} in catch block.`
+          );
+        } catch (saveError) {
+          this.logger.error(
+            `Failed to save transaction ${transactionRecord.id} in catch block: ${saveError.message}`
+          );
+        }
+      }
       throw error;
-    } finally {
-      // --- Final Step: Save the transaction with its final status ---
-      // If the transaction was already saved as COMPLETED inside the DB block,
-      // this call will be a no-op update or a re-save of the same status.
-      // If there was an error and the transaction was marked as FAILED, it will be persisted here.
-      await this.transactionRepository.save(transactionRecord);
-      this.logger.log(
-        `Final transaction persisted in DB for user ${userId}. ID: ${
-          transactionRecord.id
-        }. Status: ${transactionRecord.getStatus()}`
-      );
     }
-
-    return transactionRecord;
   }
 }

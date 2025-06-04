@@ -343,13 +343,13 @@ export class FuseService implements OnModuleInit {
         );
       }
       this.logger.log(
-        `Compra confirmada por FuseAPI para usuario ${transactionRecord.getUserId()}, stock ${stockSymbol}. Orden ID: ${
+        `Purchase confirmed by FuseAPI for user ${transactionRecord.getUserId()}, stock ${stockSymbol}. Order ID: ${
           apiResponse.data.order.symbol
         }`
       );
 
       transactionRecord.setMessage(
-        "Orden confirmada por proveedor externo, pendiente de registro en base de datos."
+        "Order confirmed by external provider, pending database registration."
       );
 
       return transactionRecord;
@@ -396,9 +396,16 @@ export class FuseService implements OnModuleInit {
       map((response: AxiosResponse) => response.data),
       retry(this.maxApiRetries),
       catchError((error) => {
-        this.logger.error("Error sending data to FuseAPI", error);
+        // Log a summary instead of the full AxiosError object for expected failures
+        if (error.isAxiosError) {
+          this.logger.warn(
+            `FuseAPI request to ${error.config?.url} failed: ${error.response?.status} - ${error.message}`
+          );
+        } else {
+          this.logger.error("Error sending data to FuseAPI (non-Axios)", error);
+        }
         throw new HttpException(
-          `Error al conectar con el proveedor externo: ${error.message}`,
+          `Error connecting to external provider: ${error.message}`,
           HttpStatus.BAD_GATEWAY
         );
       })

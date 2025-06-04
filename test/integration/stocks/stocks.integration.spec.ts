@@ -183,7 +183,7 @@ describe("StocksController (Integration) with MSW", () => {
       expect(response.body.totalItems).toBe(allInitialMockStocks.length);
       expect(response.body.page).toBe(1);
       expect(response.body.limit).toBe(10);
-      expect(response.body.totalPages).toBe(1); // Since total items (5) < limit (10)
+      expect(response.body.totalPages).toBe(1);
     });
 
     it("should return an empty list if vendor initially has no stocks", async () => {

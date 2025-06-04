@@ -104,8 +104,9 @@ describe("StocksController (Integration) with MSW", () => {
       .useValue(mockCacheProvider)
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    // Explicitly apply ValidationPipe to the test application instance
+    app = moduleFixture.createNestApplication({
+      logger: ["error"],
+    });
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,

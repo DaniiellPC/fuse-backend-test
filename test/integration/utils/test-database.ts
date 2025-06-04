@@ -47,5 +47,14 @@ export async function seedDatabase(app: INestApplication) {
     console.error(
       "DataSource is not initialized in the NestJS application. Cannot seed the database."
     );
+    return;
+  }
+
+  try {
+    await dataSource.runMigrations();
+    console.log("Migrations executed successfully.");
+  } catch (error) {
+    console.error("Error running migrations or seeding database:", error);
+    throw error;
   }
 }

@@ -2,9 +2,15 @@
 import { DataSource } from "typeorm";
 
 module.exports = async function globalSetup() {
-  console.log(
-    "\n--- Setting up integration test environment (globalSetup) ---"
-  );
+  console.log("\n--- Starting globalSetup for integration tests ---");
+
+  const dbHost = process.env.DATABASE_HOST;
+
+  if (!dbHost) {
+    console.error(
+      "CRITICAL: globalSetup: DATABASE_HOST is undefined or empty! This will likely cause ECONNREFUSED."
+    );
+  }
 
   const testDataSource = new DataSource({
     type: "postgres",
@@ -22,14 +28,21 @@ module.exports = async function globalSetup() {
 
   try {
     await testDataSource.initialize();
-    console.log("Test DataSource initialized.");
+    console.log("Test DataSource initialized successfully in globalSetup.");
 
-    console.log("Running TypeORM migrations...");
-    await testDataSource.runMigrations();
-    console.log("TypeORM migrations executed successfully.");
+    console.log("Running TypeORM migrations in globalSetup...");
+    const executedMigrations = await testDataSource.runMigrations();
+    if (executedMigrations.length > 0) {
+      console.log(
+        `globalSetup: Successfully executed ${executedMigrations.length} migrations:`
+      );
+      executedMigrations.forEach((mig) => console.log(` - ${mig.name}`));
+    } else {
+      console.log("globalSetup: No new migrations to execute.");
+    }
+    console.log("TypeORM migrations step completed in globalSetup.");
   } catch (error) {
-    console.error("Error during test database setup:", error);
-
+    console.error("CRITICAL ERROR during globalSetup:", error);
     if (testDataSource.isInitialized) {
       await testDataSource.destroy();
     }
@@ -37,7 +50,8 @@ module.exports = async function globalSetup() {
   } finally {
     if (testDataSource.isInitialized) {
       await testDataSource.destroy();
-      console.log("Test DataSource closed.");
+      console.log("Test DataSource closed in globalSetup.");
     }
+    console.log("--- globalSetup finished ---");
   }
 };

@@ -73,3 +73,28 @@ Here are some additional useful commands for managing the Dockerized NestJS appl
     ```bash
     docker-compose build --no-cache nestjs-app
     ```
+
+## Run the Integration Tests 🚅
+
+1. **Prepare and execute the Docker containers:**
+    Open your terminal (or Git Bash/PowerShell on Windows) and navigate to the project's root directory, where the docker-compose.test.yml file is located.
+
+    Then, execute the following command:
+
+    ```bash
+    docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from test_runner > test_output.log 2>&1
+    ```
+    
+    **Important: you need to execute Docker Compose before running the command**
+
+    While the command runs, you'll see Docker logs building the images and bringing up the containers. Afterwards, you'll see the test logs running. Once the tests finish, the docker-compose process will stop, and your terminal will return to the prompt.
+
+    You can review the detailed test results in the `test_output.log` file that will be created in your project's root directory.
+
+
+2. **Clean Up the Test Environment (Optional but Recommended)**
+    After running the tests, the containers will have stopped, but images and data volumes might still take up space. To completely clean up the test environment, run the following command in the same root directory of your project:
+
+    ```bash
+    docker-compose -f docker-compose.test.yml down -v --rmi all
+    ```

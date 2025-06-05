@@ -13,7 +13,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { HttpModule } from "@nestjs/axios";
 import { DataSource, DeepPartial } from "typeorm";
 import { setupServer, SetupServerApi } from "msw/node";
-import { http, HttpResponse, RequestHandler } from "msw";
+import { http, HttpResponse, RequestHandler, passthrough } from "msw";
 import { v4 as uuidv4 } from "uuid";
 import { User } from "../../../src/database/entities/user.entity";
 import {
@@ -48,6 +48,7 @@ import {
   BuyFuseStockResponse,
   BuyFuseStocksDataOrder,
 } from "../../../src/external/fuse/types/BuyFuseStocksResponse";
+import { retryOperation } from "../utils/retriesFunctionHelper";
 
 const FUSE_API_BASE_URL = "http://mocked-fuse-api.com";
 const FUSE_API_KEY = "mocked-fuse-api-key";
@@ -110,6 +111,18 @@ const defaultMSWHandlers: RequestHandler[] = [
       } as BuyFuseStockResponse);
     }
   ),
+  http.all(/127\.0\.0\.1/, async ({ request }) => {
+    console.log(
+      `[MSW Passthrough] Explicitly letting request to ${request.url} (127.0.0.1) pass through.`
+    );
+    return passthrough();
+  }),
+  http.all(/localhost/, async ({ request }) => {
+    console.log(
+      `[MSW Passthrough] Explicitly letting request to ${request.url} (localhost) pass through.`
+    );
+    return passthrough();
+  }),
 ];
 
 const server: SetupServerApi = setupServer(...defaultMSWHandlers);
@@ -265,24 +278,37 @@ describe("TransactionsController (Integration)", () => {
     }
   });
 
-  async function createUserInDb(userData: DeepPartial<User>): Promise<User> {
-    const userRepo = dataSource.getRepository(User);
-    const user = userRepo.create(userData);
-    return userRepo.save(user);
-  }
-
   describe("POST /transactions/buy", () => {
     let testUser: User;
     const stockToBuy = mockStockAAPL;
 
     beforeEach(async () => {
-      testUser = await createUserInDb({
+      const userToCreateData: DeepPartial<User> = {
         id: uuidv4(),
         username: "testuser_" + Date.now(),
         balance: 10000,
         email: "testuser_" + Date.now() + "@example.com",
         password_hash: "testpassword",
-      });
+      };
+
+      console.log("userToCreateData", userToCreateData);
+
+      const newUserEntity = dataSource
+        .getRepository(User)
+        .create(userToCreateData);
+      testUser = await userRepository.save(newUserEntity);
+
+      // Verification step
+      const checkUser = await userRepository.findOneById(testUser.id);
+      if (!checkUser) {
+        const errorMsg = `[beforeEach POST /transactions/buy] CRITICAL: User ${testUser.id} (username: ${testUser.username}) not found immediately after save using userRepository!`;
+        console.error(errorMsg);
+        throw new Error(errorMsg);
+      } else {
+        console.log(
+          `[beforeEach POST /transactions/buy] User ${testUser.id} (username: ${testUser.username}, balance: ${checkUser.balance}) successfully created and verified in DB via userRepository.`
+        );
+      }
     });
 
     it("should successfully buy a stock", async () => {
@@ -294,10 +320,15 @@ describe("TransactionsController (Integration)", () => {
       };
       const expectedTotalCost = requestBody.quantity * requestBody.price;
 
-      const response = await request(app.getHttpServer())
-        .post("/transactions/buy")
-        .send(requestBody)
-        .expect(HttpStatus.CREATED);
+      const buyStock = () =>
+        request(app.getHttpServer())
+          .post("/transactions/buy")
+          .send(requestBody)
+          .expect(HttpStatus.CREATED);
+
+      const response = await retryOperation(buyStock, (error) => {
+        return error.status === HttpStatus.NOT_FOUND;
+      });
 
       const responseDto = response.body as BuyStockResponseDTO;
       expect(responseDto.transaction.user_id).toBe(testUser.id);

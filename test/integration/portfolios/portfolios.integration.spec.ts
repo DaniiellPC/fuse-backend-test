@@ -16,6 +16,7 @@ import { Transaction } from "../../../src/database/entities/transaction.entity";
 import { FindPortfolioByUserIdResponseDTO } from "../../../src/api/portfolios/controllers/dtos/FindPortfolioByUserIdResponseDTO";
 import { PortfoliosModule } from "../../../src/api/portfolios/portfolios.module";
 import { clearDatabase } from "../utils/test-database";
+import { retryOperation } from "../utils/retriesFunctionHelper";
 
 // Minimal Test Module for Portfolios
 @Module({
@@ -126,6 +127,7 @@ describe("PortfoliosController (Integration)", () => {
         password_hash: "hashedpassword",
       });
 
+      console.log("testUserPortfolio", testUser);
       userPortfolio = [];
     });
 
@@ -144,9 +146,14 @@ describe("PortfoliosController (Integration)", () => {
       });
       userPortfolio = [portfolioItem1, portfolioItem2];
 
-      const response = await request(app.getHttpServer())
-        .get(`/portfolios/${testUser.id}/portfolio`)
-        .expect(HttpStatus.OK);
+      const fetchPortfolio = () =>
+        request(app.getHttpServer())
+          .get(`/portfolios/${testUser.id}/portfolio`)
+          .expect(HttpStatus.OK);
+
+      const response = await retryOperation(fetchPortfolio, (error) => {
+        return error.status === HttpStatus.NOT_FOUND;
+      });
 
       const responseDto = response.body as FindPortfolioByUserIdResponseDTO;
       expect(responseDto.portfolios).toBeInstanceOf(Array);

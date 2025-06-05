@@ -112,7 +112,7 @@ export class ReportsService {
         "Email sending"
       );
 
-      this.logger.log("Email with report sended to MailTrap.IO sucessfully!");
+      this.logger.log("Email with report sended to MailTrap.IO successfully!");
     } catch (error) {
       this.logger.error("Error generating or sending report", error.stack);
     }

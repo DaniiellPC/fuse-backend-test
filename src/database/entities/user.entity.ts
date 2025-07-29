@@ -45,4 +45,8 @@ export class User {
   setBalance(balance: number): void {
     this.balance = balance;
   }
+
+  getUserId(): string {
+    return this.id;
+  }
 }

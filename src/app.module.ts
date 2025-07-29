@@ -8,6 +8,7 @@ import { TransactionsModule } from "./api/transactions/transactions.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { PortfoliosModule } from "./api/portfolios/portfolios.module";
 import { ReportsModule } from "./reports/reports.module";
+import { ThrottlerModule } from "@nestjs/throttler";
 
 @Module({
   imports: [
@@ -48,6 +49,14 @@ import { ReportsModule } from "./reports/reports.module";
       inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        },
+      ],
+    }),
   ],
   controllers: [],
   providers: [],

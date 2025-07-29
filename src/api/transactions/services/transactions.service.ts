@@ -22,6 +22,7 @@ import {
 } from "../../../database/repositories/interfaces/transaction-repository.interface";
 import { DataSource, EntityManager } from "typeorm";
 import { PortfoliosService } from "../../portfolios/services/portfolios.service";
+import { User } from "../../../database/entities/user.entity";
 
 @Injectable()
 export class TransactionsService {
@@ -66,15 +67,7 @@ export class TransactionsService {
         message: "Purchase initiated, awaiting confirmation and validation",
       });
 
-      if (initialUser.getBalance() < totalCost) {
-        this.logger.warn(
-          `Purchase failed for user ${userId}: insufficient balance (pre-validation). Cost: ${totalCost}, Balance: ${initialUser.getBalance()}`
-        );
-        transactionRecord.updateStatus(TransactionStatus.FAILED);
-        transactionRecord.setMessage("Insufficient Funds");
-        await this.transactionRepository.createAndSave(transactionRecord);
-        throw new HttpException("Insufficient Funds", HttpStatus.BAD_REQUEST);
-      }
+      this.balanceValidation(userId, initialUser, transactionRecord, totalCost);
 
       const isPriceValid = await this.fuseService.compareStockPrice(
         symbol,
@@ -217,6 +210,23 @@ export class TransactionsService {
         }
       }
       throw error;
+    }
+  }
+
+  private async balanceValidation(
+    userId: string,
+    initialUser: User,
+    transactionRecord: Transaction,
+    totalCost: number
+  ) {
+    if (initialUser.getBalance() < totalCost) {
+      this.logger.warn(
+        `Purchase failed for user ${userId}: insufficient balance (pre-validation). Cost: ${totalCost}, Balance: ${initialUser.getBalance()}`
+      );
+      transactionRecord.updateStatus(TransactionStatus.FAILED);
+      transactionRecord.setMessage("Insufficient Funds");
+      await this.transactionRepository.createAndSave(transactionRecord);
+      throw new HttpException("Insufficient Funds", HttpStatus.BAD_REQUEST);
     }
   }
 }
